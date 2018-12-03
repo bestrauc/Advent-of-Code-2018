@@ -1,6 +1,6 @@
-use std::fs::File;
-use std::io::prelude::*;
 use std::collections::HashSet;
+
+use utils;
 
 static INPUT: &str = "data/input1";
 
@@ -8,9 +8,7 @@ static INPUT: &str = "data/input1";
 // ==================================================
 
 fn get_freq_vector() -> Vec<i32> {
-    let mut file = File::open(INPUT).expect("Input data not found");
-    let mut file_contents = String::new();
-    file.read_to_string(&mut file_contents).unwrap();
+    let file_contents = utils::file_to_string(INPUT);
 
     let freq_vector: Vec<_> = file_contents.lines().map(|line| {
         line.parse::<i32>().unwrap()
@@ -102,9 +100,17 @@ pub fn solution2() -> i32 {
 }
 
 
+// Test the sample puzzle inputs
+// ================================================== 
 #[cfg(test)]
 mod test {
     #[test]
-    fn test_samples() {
+    fn test_samples1() {
+
+    }
+
+    #[test]
+    fn test_samples2() {
+
     }
 }
