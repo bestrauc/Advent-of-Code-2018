@@ -21,7 +21,15 @@ fn solve_advent2() {
 }
 
 
+fn solve_advent3() {
+    let solution1 = advent3::solution1();
+    println!("Covered squares: {}", solution1);
+
+    let solution2 = advent3::solution2();
+    println!("Intact claim: {}", solution2);
+}
+
+
 fn main() {
-    solve_advent1();
-    solve_advent2();
+    solve_advent3();
 }

@@ -25,6 +25,8 @@ pub fn solution2() -> () {
 // ================================================== 
 #[cfg(test)]
 mod test {
+    use super::*;
+
     #[test]
     fn test_samples1() {
 
