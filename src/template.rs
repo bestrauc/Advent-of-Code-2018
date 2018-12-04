@@ -31,7 +31,7 @@ mod test {
     }
 
     #[test]
-    fn test_samples1() {
+    fn test_samples2() {
 
     }
 }
