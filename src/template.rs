@@ -21,6 +21,12 @@ pub fn solution2() -> () {
 }
 
 
+pub fn solve_day() {
+    solution1();
+    solution2();
+}
+
+
 // Test the sample puzzle inputs
 // ================================================== 
 #[cfg(test)]

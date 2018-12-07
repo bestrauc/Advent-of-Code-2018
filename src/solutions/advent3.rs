@@ -104,6 +104,15 @@ pub fn solution2() -> String {
 }
 
 
+pub fn solve_day() {
+    let solution1 = solution1();
+    println!("Covered squares: {}", solution1);
+
+    let solution2 = solution2();
+    println!("Intact claim: {}", solution2);
+}
+
+
 // Test the sample puzzle inputs
 // ================================================== 
 #[cfg(test)]

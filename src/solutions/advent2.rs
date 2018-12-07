@@ -97,6 +97,15 @@ pub fn solution2() -> String {
 }
 
 
+pub fn solve_day() {
+    let solution1 = solution1();
+    println!("Checksum: {}", solution1);
+
+    let solution2 = solution2();
+    println!("Common string: {}", solution2);
+}
+
+
 // Test the sample puzzle inputs
 // ================================================== 
 #[cfg(test)]
