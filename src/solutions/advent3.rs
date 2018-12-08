@@ -1,4 +1,4 @@
-use utils;
+use solutions::utils;
 
 static INPUT: &str = "data/input3";
 
@@ -60,7 +60,7 @@ fn count_duplicates_squares(squares: Vec<Square>) -> u32 {
 // ==================================================
 
 fn get_intact_square(squares: Vec<Square>) -> String {
-    let mut count_matrix = compute_square_cover(&squares);
+    let count_matrix = compute_square_cover(&squares);
 
     let mut found_square = None;
     'start: for square in squares {

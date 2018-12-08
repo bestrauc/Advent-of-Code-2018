@@ -1,8 +1,5 @@
-extern crate chrono;
-
-mod utils;
-mod solutions;
+extern crate solutions_lib;
 
 fn main() {
-    solutions::advent4::solve_day();
+    solutions_lib::advent4::solve_day();
 }

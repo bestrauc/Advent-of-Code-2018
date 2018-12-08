@@ -4,4 +4,8 @@ version = "0.1.0"
 authors = ["Benjamin Strauch <b.strauch@fu-berlin.de>"]
 
 [dependencies]
-chrono = "0.4.6"
+chrono = "0.4"
+
+[lib]
+name = "solutions_lib"
+path = "src/lib.rs"

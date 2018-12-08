@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use utils;
+use solutions::utils;
 
 static INPUT: &str = "data/input1";
 

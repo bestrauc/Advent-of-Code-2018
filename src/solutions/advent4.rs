@@ -1,9 +1,8 @@
 use std::collections::HashMap;
-use std::time;
 
-use chrono::{NaiveDateTime, Datelike, Timelike};
+use chrono::{NaiveDateTime, Timelike};
 
-use utils;
+use solutions::utils;
 
 static INPUT: &str = "data/input4";
 
@@ -64,7 +63,8 @@ fn count_sleeps(line_actions: &Vec<(NaiveDateTime, LineAction)>) -> HashMap<Stri
                 let sleep_end = time.minute() + 1;
                 let guard_counter = sleep_counter.entry(active_guard.unwrap().to_string())
                     .or_insert(vec![0; 60]);
-                for minute in asleep_time.unwrap().minute()..time.minute() {
+
+                for minute in sleep_start..sleep_end {
                     guard_counter[minute as usize] += 1;
                 }
             }
