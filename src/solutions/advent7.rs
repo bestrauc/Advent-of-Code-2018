@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
-use binary_heap_plus::BinaryHeap;
+use binary_heap_plus::{BinaryHeap, MinComparator};
 use std::cell::RefCell;
+use std::cmp;
 
 use solutions::utils;
 
@@ -12,6 +13,7 @@ static INPUT: &str = "data/input7";
 struct StepNode {
     requirements: HashSet<String>,
     dependency: Vec<String>,
+    start_time: u32,
 }
 
 impl StepNode {
@@ -19,10 +21,19 @@ impl StepNode {
         StepNode {
             requirements: HashSet::new(),
             dependency: Vec::new(),
+            start_time: 0,
         }
     }
 }
 
+/// since we used String (unnecessarily) for the step IDs, we convert
+/// them to char here and get the duration for the first char
+fn get_duration_for_id(id: &str) -> u32 {
+    let str_bytes = id.bytes().collect::<Vec<_>>();
+
+    ((str_bytes[0] - 64) as u32)
+//    60 + ((str_bytes[0] - 64) as u32)
+}
 
 fn create_step_graph(instructions: Vec<&str>) -> HashMap<String, RefCell<StepNode>> {
     let mut step_graph = HashMap::new();
@@ -54,6 +65,14 @@ fn create_step_graph(instructions: Vec<&str>) -> HashMap<String, RefCell<StepNod
 
 // Problem 1
 // ==================================================
+/// the predecessor node has accumulated some total processing time,
+/// which potentially increases the time needed to finish the node
+/// (this is similar to the classical shortest path step `dist + t < current_dist`)
+fn update_node_processing_time(predecessor: &StepNode, node: &mut StepNode, predecessor_time: u32) {
+    if predecessor.start_time + predecessor_time > node.start_time {
+        node.start_time = predecessor.start_time + predecessor_time;
+    }
+}
 
 /// Do a topological sort over the step graph, breaking ties by lexicographic order.
 /// We do this as follows:
@@ -62,9 +81,8 @@ fn create_step_graph(instructions: Vec<&str>) -> HashMap<String, RefCell<StepNod
 ///     3. If the graph is not empty, go back to step 1. (Old sinks are still sinks but
 ///        satisfying S might have created more sinks which are smaller.)
 ///     The sink set is maintained in a priority queue (by lexicographic order).
-fn find_instruction_order(mut step_graph: HashMap<String, RefCell<StepNode>>) -> String {
-    let mut instruction_order = String::new();
-
+fn find_instruction_order(step_graph: HashMap<String, RefCell<StepNode>>,
+                          num_workers: usize) -> (u32, String) {
     // find initial set of sinks by iterating through all nodes. we push values
     // manually because collect::<..> doesn't seem to work for the min heap variant.
     let mut sink_set = BinaryHeap::new_min();
@@ -75,34 +93,45 @@ fn find_instruction_order(mut step_graph: HashMap<String, RefCell<StepNode>>) ->
         sink_set.push(sink_node_id);
     }
 
-    while !step_graph.is_empty() {
-        // this pop should always return something if the graph is not empty
-        // because a non-empty DAG always has some sinks, else there's a cycle.
-        if let Some(sink_node_id) = sink_set.pop() {
-            // add this node_id to the instruction order
-            instruction_order.push_str(&sink_node_id);
-            // remove this node as a requirement from the nodes that depend on it
-            // and check if new sinks are formed when removing this node
-            {
-                let removed_sink_node = step_graph.get(&sink_node_id).unwrap();
-                for dependent_node_id in &removed_sink_node.borrow().dependency {
-                    let dependent_node = step_graph.get(dependent_node_id).unwrap();
-                    dependent_node.borrow_mut().requirements.remove(&sink_node_id);
+    while !sink_set.is_empty() {
+        let sink_node_id = sink_set.pop().unwrap();
 
-                    if dependent_node.borrow().requirements.is_empty() {
-                        sink_set.push(dependent_node_id.clone());
-                    }
-                }
+        let removed_sink_node = step_graph.get(&sink_node_id).unwrap();
+
+        // remove this node as a requirement from the nodes that depend on it
+        for dependent_node_id in &removed_sink_node.borrow().dependency {
+            let dependent_node = step_graph.get(dependent_node_id).unwrap();
+            dependent_node.borrow_mut().requirements.remove(&sink_node_id);
+
+            // check if new sinks are formed when removing this node
+            // if yes, add them to our priority queue, with updated times
+            if dependent_node.borrow().requirements.is_empty() {
+                update_node_processing_time(&removed_sink_node.borrow(),
+                                            &mut dependent_node.borrow_mut(),
+                                            get_duration_for_id(&sink_node_id));
+
+                sink_set.push(dependent_node_id.clone());
             }
-
-            // remove the processed sink from the graph
-            step_graph.remove(&sink_node_id);
-        } else {
-            panic!("The graph seems to have a cycle?")
         }
     }
 
-    instruction_order
+    let mut sorted_graph_nodes = step_graph
+        .iter()
+        .map(|(key, node)| (key, node.borrow().start_time + get_duration_for_id(key)))
+        .collect::<Vec<_>>();
+
+    sorted_graph_nodes.sort_by_key(|(_, duration)| *duration);
+    println!("{:?}", sorted_graph_nodes);
+
+
+    let duration = sorted_graph_nodes.last().unwrap().1;
+    let mut completion_order = String::new();
+    for (key, _) in sorted_graph_nodes {
+        completion_order.push_str(key);
+    }
+
+
+    (duration, completion_order)
 }
 
 // Problem 2
@@ -115,12 +144,18 @@ pub fn solution1() -> () {
     let instructions = utils::file_to_string(INPUT);
     let instructions = instructions.lines().collect::<Vec<_>>();
     let step_graph = create_step_graph(instructions);
-    let instruction_order = find_instruction_order(step_graph);
-    println!("Instructions should be executed as '{}'", instruction_order);
+    let (processing_time, instruction_order) = find_instruction_order(step_graph, 1);
+    println!("Instructions should be executed as '{}' in {}s", instruction_order, processing_time);
 }
 
 
-pub fn solution2() -> () {}
+pub fn solution2() -> () {
+    let instructions = utils::file_to_string(INPUT);
+    let instructions = instructions.lines().collect::<Vec<_>>();
+    let step_graph = create_step_graph(instructions);
+    let (processing_time, instruction_order) = find_instruction_order(step_graph, 2);
+    println!("Instructions should be executed as '{}' in {}s", instruction_order, processing_time);
+}
 
 
 pub fn solve_day() {
@@ -135,10 +170,8 @@ pub fn solve_day() {
 mod test {
     use super::*;
 
-    #[test]
-    fn test_samples1() {
-        let test_instructions =
-            "Step C must be finished before step A can begin.
+    const TEST_INSTRUCTIONS: &str =
+        "Step C must be finished before step A can begin.
             Step C must be finished before step F can begin.
             Step A must be finished before step B can begin.
             Step A must be finished before step D can begin.
@@ -146,12 +179,24 @@ mod test {
             Step D must be finished before step E can begin.
             Step F must be finished before step E can begin.";
 
-        let instructions = test_instructions.lines().collect::<Vec<_>>();
+    #[test]
+    fn test_samples1() {
+        let instructions = TEST_INSTRUCTIONS.lines().collect::<Vec<_>>();
         let step_graph = create_step_graph(instructions);
+        let (_, instruction_order) =
+            find_instruction_order(step_graph, 1);
 
-        assert_eq!(find_instruction_order(step_graph), "CABDFE");
+        assert_eq!(instruction_order, "CABDFE");
     }
 
     #[test]
-    fn test_samples2() {}
+    fn test_samples2() {
+        let instructions = TEST_INSTRUCTIONS.lines().collect::<Vec<_>>();
+        let step_graph = create_step_graph(instructions);
+        let (instruction_time, instruction_order2) =
+            find_instruction_order(step_graph, 2);
+
+        assert_eq!(instruction_order2, "CABFDE");
+        assert_eq!(instruction_time, 375);
+    }
 }
