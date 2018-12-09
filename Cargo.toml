@@ -5,6 +5,7 @@ authors = ["Benjamin Strauch <b.strauch@fu-berlin.de>"]
 
 [dependencies]
 chrono = "0.4"
+binary-heap-plus = "0.1.4"
 
 [lib]
 name = "solutions_lib"
