@@ -8,3 +8,4 @@ pub mod advent5;
 pub mod advent6;
 pub mod advent7;
 pub mod advent8;
+pub mod advent9;
